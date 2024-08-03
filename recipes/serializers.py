@@ -1,54 +1,17 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
 
-from recipes.models import Recipe, Category
+# from django.contrib.auth.models import User
+
+from recipes.models import Recipe
 from tag.models import Tag
 
-
-class TagSerializer_old(serializers.Serializer):
-    id = serializers.IntegerField()
-    name = serializers.CharField(max_length=255)
-    slug = serializers.SlugField()
+from authors.validator import AuthorRecipeValidator
 
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ["id", "name", "slug"]
-
-
-class RecipeSerializer_old(serializers.Serializer):
-    id = serializers.IntegerField()
-    title = serializers.CharField(max_length=65)
-    description = serializers.CharField(max_length=165)
-    # renomeando um campo
-    public = serializers.BooleanField(source="is_published")
-    # Campo criado
-    preparation = serializers.SerializerMethodField()
-    # Campo relacionado
-    category = serializers.PrimaryKeyRelatedField(
-        queryset=Category.objects.all(),
-    )
-    category_name = serializers.StringRelatedField(source="category")
-    author = serializers.StringRelatedField()
-    author_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-
-    tags = serializers.PrimaryKeyRelatedField(
-        queryset=Tag.objects.all(),
-        many=True,
-    )
-
-    tag_objects = TagSerializer(source="tags", many=True)
-
-    tag_links = serializers.HyperlinkedRelatedField(
-        many=True,
-        source="tags",
-        queryset=Tag.objects.all(),
-        view_name="recipes:recipes_api_v2_tag",
-    )
-
-    def get_preparation(self, recipe):
-        return f"{recipe.preparation_time} {recipe.preparation_time_unit}"
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -60,6 +23,12 @@ class RecipeSerializer(serializers.ModelSerializer):
             "description",
             "public",
             "preparation",
+            "preparation_time",
+            "preparation_time_unit",
+            "servings",
+            "servings_unit",
+            "preparation_steps",
+            "cover",
             "author",
             "author_name",
             "author_id",
@@ -69,6 +38,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             "tag_links",
             "tag_objects",
             "tag_links",
+            "slug_",
         ]
 
     # renomeando um campo
@@ -105,5 +75,26 @@ class RecipeSerializer(serializers.ModelSerializer):
         read_only=True,
     )
 
+    slug_ = serializers.SlugField(source="slug", read_only=True)
+
     def get_preparation(self, recipe):
         return f"{recipe.preparation_time} {recipe.preparation_time_unit}"
+
+    def validate(self, attrs):
+        # Adaptação para ler os campos e realizar um PATCH.
+        if self.instance is not None:
+            if attrs.get("servings") is None:
+                attrs["servings"] = self.instance.servings
+            if attrs.get("preparation_time") is None:
+                attrs["preparation_time"] = self.instance.servings
+
+        super_validate = super().validate(attrs)
+        AuthorRecipeValidator(
+            data=attrs,
+            ErrorClass=serializers.ValidationError,
+        )
+        return super_validate
+
+    def save(self, **kwargs):
+        # Modificação do save para receber parâmetros adicionais.
+        return super().save(**kwargs)

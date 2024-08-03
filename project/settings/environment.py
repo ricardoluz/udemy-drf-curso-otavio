@@ -9,20 +9,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'INSECURE')
+SECRET_KEY = os.environ.get("SECRET_KEY", "INSECURE")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True if os.environ.get('DEBUG') == '1' else False
+DEBUG = True if os.environ.get("DEBUG") == "1" else False
 
 ALLOWED_HOSTS: list[str] = parse_comma_sep_str_to_list(
-    get_env_variable('ALLOWED_HOSTS')
+    get_env_variable("ALLOWED_HOSTS")
 )
 CSRF_TRUSTED_ORIGINS: list[str] = parse_comma_sep_str_to_list(
-    get_env_variable('CSRF_TRUSTED_ORIGINS')
+    get_env_variable("CSRF_TRUSTED_ORIGINS")
 )
 
-ROOT_URLCONF = 'project.urls'
+ROOT_URLCONF = "project.urls"
 
-WSGI_APPLICATION = 'project.wsgi.application'
+WSGI_APPLICATION = "project.wsgi.application"
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
